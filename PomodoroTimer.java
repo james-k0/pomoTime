@@ -17,6 +17,7 @@ public class PomodoroTimer {
     private int completedCycles = 0;
     private final File cycleFile = new File("num.txt");
     private boolean isBreak = false;
+    private JButton toggleEditableButton;
 
     public PomodoroTimer() {
         createUI();
@@ -29,15 +30,38 @@ public class PomodoroTimer {
         frame.setLayout(new GridLayout(6, 2));
         frame.setIconImage(Toolkit.getDefaultToolkit().getImage("dav.ico"));
 
+        JMenuBar menuBar = new JMenuBar();
+        JMenu settingsMenu = new JMenu("settings");
+        JMenuItem settingsItem = new JMenuItem("open settings");
+        JMenuItem exitItem = new JMenuItem("exit app");
+        settingsMenu.add(settingsItem);
+        settingsMenu.add(exitItem);
+        menuBar.add(settingsMenu);
+        frame.setJMenuBar(menuBar);
+
+        settingsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openSettingsMenu();
+            }
+        });
+
+        exitItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                exitApplication();
+            }
+        });
+
         timerLabel = new JLabel("00:00", SwingConstants.CENTER);
         timerLabel.setFont(new Font("Arial", Font.BOLD, 24));
 
         cyclesLabel = new JLabel(loadCompletedCycles(), SwingConstants.CENTER);
         cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 16));
 
-        minutesInput = new JTextField("25"); 
-        breakInput = new JTextField("5"); 
-        breakInput.setEditable(false); 
+        minutesInput = new JTextField("25");
+        breakInput = new JTextField("5");
+        breakInput.setEditable(false);
 
         minutesInput.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -75,6 +99,43 @@ public class PomodoroTimer {
         frame.add(cyclesLabel);
 
         frame.setVisible(true);
+    }
+
+    private void openSettingsMenu() {
+        JFrame settingsFrame = new JFrame("settings menu");
+        settingsFrame.setSize(300, 200);
+        settingsFrame.setLayout(new GridLayout(1, 2));
+
+        JLabel customBreaksLabel = new JLabel("custom breaks:");
+        toggleEditableButton = new JButton("No");
+        toggleEditableButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                boolean isEditable = breakInput.isEditable();
+                breakInput.setEditable(!isEditable);
+                toggleEditableButton.setText(isEditable ? "No" : "Yes");
+            }
+        });
+
+        settingsFrame.add(customBreaksLabel);
+        settingsFrame.add(toggleEditableButton);
+        settingsFrame.setVisible(true);
+    }
+
+    private void exitApplication() {
+        int confirm = JOptionPane.showConfirmDialog(frame, 
+            "do you want to exit", 
+            "exit box", 
+            JOptionPane.YES_NO_OPTION);
+    
+        if (confirm == JOptionPane.YES_OPTION) {
+            if (timer != null && timer.isRunning()) {
+                timer.stop();
+            }
+            saveCompletedCycles();
+            frame.dispose();
+            System.exit(0);
+        }
     }
 
     private void updateBreakTime() {
@@ -170,9 +231,9 @@ public class PomodoroTimer {
 
     private void updateWindowTitle() {
         if (isRunning) {
-            frame.setTitle(isBreak ? "Break" : "Study");
+            frame.setTitle(isBreak ? "on break" : "studying");
         } else {
-            frame.setTitle("Paused");
+            frame.setTitle("paused");
         }
     }
 
