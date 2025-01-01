@@ -3,7 +3,14 @@ setlocal
 
 set MAIN_CLASS=PomodoroTimer
 set JAR_NAME=pomoTime.jar
+echo jar: %JAR_NAME%
 set BIN_DIR=bin
+set ICON_FILE=dav.ico
+echo ico: %ICON_FILE%
+set OUTPUT_EXE=pomoTime.exe
+echo out: %OUTPUT_EXE%
+set LAUNCH4J_PATH="C:\Program Files (x86)\Launch4j\launch4jc.exe"
+set XML_FILE="launch4j_build.xml"
 
 if not exist "%BIN_DIR%" (
     mkdir "%BIN_DIR%"
@@ -25,4 +32,9 @@ cd ..
 rmdir /s /q "%BIN_DIR%"
 
 echo JAR out: %JAR_NAME%
+
+%LAUNCH4J_PATH% %XML_FILE%
+
+echo EXE out: %OUTPUT_EXE%
+
 endlocal

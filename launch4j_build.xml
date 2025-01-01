@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <outfile>pomoTime.exe</outfile>
+  <jar>pomoTime.jar</jar>
+  <icon>dav.ico</icon>
+  <chdir>.</chdir>
+  <jre>
+    <path>%JAVA_HOME%;%PATH%</path>
+    <minVersion>1.8.0</minVersion>
+  </jre>
+</launch4jConfig>

@@ -26,7 +26,8 @@ public class PomodoroTimer {
         frame = new JFrame("pomotime");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 250);
-        frame.setLayout(new GridLayout(6, 2)); 
+        frame.setLayout(new GridLayout(6, 2));
+        frame.setIconImage(Toolkit.getDefaultToolkit().getImage("dav.ico"));
 
         timerLabel = new JLabel("00:00", SwingConstants.CENTER);
         timerLabel.setFont(new Font("Arial", Font.BOLD, 24));
