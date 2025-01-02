@@ -12,7 +12,7 @@ public class PomodoroTimer {
     private JButton startButton, pauseButton, cancelButton;
     private JTextField minutesInput, breakInput;
     private Timer timer;
-    private int remainingTime;
+    private long remainingTime;
     private boolean isRunning = false;
     private int completedCycles = 0;
     private final File cycleFile = new File("num.txt");
@@ -60,8 +60,8 @@ public class PomodoroTimer {
         cyclesLabel = new JLabel(loadCompletedCycles(), SwingConstants.CENTER);
         cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 16));
 
-        minutesInput = new JTextField("25");
-        breakInput = new JTextField("5");
+        minutesInput = new JTextField("50");
+        breakInput = new JTextField("10");
         breakInput.setEditable(false);
 
         minutesInput.getDocument().addDocumentListener(new DocumentListener() {
@@ -89,9 +89,9 @@ public class PomodoroTimer {
         pauseButton.addActionListener(new PauseAction());
         cancelButton.addActionListener(new CancelAction());
 
-        frame.add(new JLabel("study mins:", SwingConstants.RIGHT));
+        frame.add(new JLabel("study mins:", SwingConstants.CENTER));
         frame.add(minutesInput);
-        frame.add(new JLabel("break mins:", SwingConstants.RIGHT));
+        frame.add(new JLabel("break mins:", SwingConstants.CENTER));
         frame.add(breakInput);
         frame.add(timerLabel);
         frame.add(startButton);
@@ -184,44 +184,38 @@ public class PomodoroTimer {
     }
 
     private void startTimer() {
-        try {
-            int minutes = Integer.parseInt(minutesInput.getText());
-            int totalMilliseconds = minutes * 60 * 1000;
-            int studyMilliseconds = totalMilliseconds;
-            int breakMilliseconds = 0;
-    
-            // If we are on a break, read the break time from the breakInput field
-            if (isBreak) {
-                breakMilliseconds = Integer.parseInt(breakInput.getText()) * 60 * 1000;
-                remainingTime = breakMilliseconds;
-            } else {
-                remainingTime = studyMilliseconds;
-            }
-        } catch (NumberFormatException e) {
-            System.err.println("time input not valid: " + e.getMessage());
-            return;
+        if (remainingTime <= 0) {
+            remainingTime = isBreak
+                    ? Integer.parseInt(breakInput.getText()) * 60 * 1000L
+                    : Integer.parseInt(minutesInput.getText()) * 60 * 1000L;
         }
     
-        timer = new Timer(1000, new ActionListener() {
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + remainingTime;
+    
+        timer = new Timer(50, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (remainingTime > 0) {
-                    remainingTime -= 1000;
-                    updateTimerLabel();
-                } else {
+                long currentTime = System.currentTimeMillis();
+                remainingTime = endTime - currentTime;
+    
+                if (remainingTime <= 0) {
                     timer.stop();
                     isRunning = false;
+    
                     if (isBreak) {
                         completedCycles++;
                         saveCompletedCycles();
                         updateCyclesLabel();
-                        Toolkit.getDefaultToolkit().beep();
-                    } else {
-                        Toolkit.getDefaultToolkit().beep();
                     }
+                    Toolkit.getDefaultToolkit().beep();
+    
                     isBreak = !isBreak;
                     updateWindowTitle();
-                    startTimer(); // Start the next timer (study or break)
+                    remainingTime = 0; 
+                    startTimer();
+                } else {
+                    updateTimerLabel();
                 }
             }
         });
@@ -231,12 +225,14 @@ public class PomodoroTimer {
         updateTimerLabel();
         timer.start();
     }
+    
 
     private void updateTimerLabel() {
-        int minutes = remainingTime / 60000;
-        int seconds = (remainingTime % 60000) / 1000;
+        int minutes = (int) (remainingTime / 60000); 
+        int seconds = (int) ((remainingTime % 60000) / 1000);
         timerLabel.setText(String.format("%02d:%02d", minutes, seconds));
     }
+    
 
     private void updateWindowTitle() {
         if (isRunning) {
@@ -261,11 +257,13 @@ public class PomodoroTimer {
             updateWindowTitle();
             pauseButton.setText("Resume");
         } else if (timer != null && !isRunning) {
-            timer.start();
+            startTimer();
             isRunning = true;
-            updateWindowTitle();
+            pauseButton.setText("Pause");
         }
     }
+    
+    
 
     private void cancelTimer() {
         stopTimer();
