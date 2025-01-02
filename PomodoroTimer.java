@@ -188,13 +188,20 @@ public class PomodoroTimer {
             int minutes = Integer.parseInt(minutesInput.getText());
             int totalMilliseconds = minutes * 60 * 1000;
             int studyMilliseconds = totalMilliseconds;
-            int breakMilliseconds = (totalMilliseconds / 5);
-            remainingTime = isBreak ? breakMilliseconds : studyMilliseconds;
+            int breakMilliseconds = 0;
+    
+            // If we are on a break, read the break time from the breakInput field
+            if (isBreak) {
+                breakMilliseconds = Integer.parseInt(breakInput.getText()) * 60 * 1000;
+                remainingTime = breakMilliseconds;
+            } else {
+                remainingTime = studyMilliseconds;
+            }
         } catch (NumberFormatException e) {
             System.err.println("time input not valid: " + e.getMessage());
             return;
         }
-
+    
         timer = new Timer(1000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -214,11 +221,11 @@ public class PomodoroTimer {
                     }
                     isBreak = !isBreak;
                     updateWindowTitle();
-                    startTimer();
+                    startTimer(); // Start the next timer (study or break)
                 }
             }
         });
-
+    
         isRunning = true;
         updateWindowTitle();
         updateTimerLabel();
