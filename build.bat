@@ -24,7 +24,7 @@ if errorlevel 1 (
 )
 
 cd "%BIN_DIR%"
-jar cfe "%JAR_NAME%" %MAIN_CLASS% *.class
+jar cfe "%JAR_NAME%" %MAIN_CLASS% *.class ..\dav.png
 
 move "%JAR_NAME%" ..
 

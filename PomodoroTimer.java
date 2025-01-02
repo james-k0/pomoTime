@@ -18,6 +18,7 @@ public class PomodoroTimer {
     private final File cycleFile = new File("num.txt");
     private boolean isBreak = false;
     private JButton toggleEditableButton;
+    private final Image icon = new ImageIcon(PomodoroTimer.class.getResource("/dav.png")).getImage();
 
     public PomodoroTimer() {
         createUI();
@@ -28,7 +29,7 @@ public class PomodoroTimer {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 250);
         frame.setLayout(new GridLayout(6, 2));
-        frame.setIconImage(Toolkit.getDefaultToolkit().getImage("dav.ico"));
+        frame.setIconImage(icon);
 
         JMenuBar menuBar = new JMenuBar();
         JMenu settingsMenu = new JMenu("settings");
@@ -105,6 +106,7 @@ public class PomodoroTimer {
         JFrame settingsFrame = new JFrame("settings menu");
         settingsFrame.setSize(300, 200);
         settingsFrame.setLayout(new GridLayout(1, 2));
+        settingsFrame.setIconImage(icon);
 
         JLabel customBreaksLabel = new JLabel("custom breaks:");
         toggleEditableButton = new JButton("No");
