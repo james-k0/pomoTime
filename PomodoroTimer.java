@@ -25,7 +25,7 @@ public class PomodoroTimer {
     }
 
     private void createUI() {
-        frame = new JFrame("pomotime");
+        frame = new JFrame("get workin");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 250);
         frame.setLayout(new GridLayout(6, 2));
@@ -84,6 +84,7 @@ public class PomodoroTimer {
         startButton = new JButton("Start");
         pauseButton = new JButton("Pause");
         cancelButton = new JButton("Cancel");
+        pauseButton.setEnabled(false); 
 
         startButton.addActionListener(new StartAction());
         pauseButton.addActionListener(new PauseAction());
@@ -184,6 +185,8 @@ public class PomodoroTimer {
     }
 
     private void startTimer() {
+        startButton.setEnabled(false); 
+        pauseButton.setEnabled(true);
         if (remainingTime <= 0) {
             remainingTime = isBreak
                     ? Integer.parseInt(breakInput.getText()) * 60 * 1000L
@@ -212,7 +215,7 @@ public class PomodoroTimer {
     
                     isBreak = !isBreak;
                     updateWindowTitle();
-                    remainingTime = 0; 
+                    remainingTime = 0;
                     startTimer();
                 } else {
                     updateTimerLabel();
@@ -224,7 +227,7 @@ public class PomodoroTimer {
         updateWindowTitle();
         updateTimerLabel();
         timer.start();
-    }
+    }   
     
 
     private void updateTimerLabel() {
@@ -238,15 +241,7 @@ public class PomodoroTimer {
         if (isRunning) {
             frame.setTitle(isBreak ? "on break" : "studying");
         } else {
-            frame.setTitle("paused");
-        }
-    }
-
-    private void stopTimer() {
-        if (timer != null && isRunning) {
-            timer.stop();
-            isRunning = false;
-            updateWindowTitle();
+            frame.setTitle("not workin");
         }
     }
 
@@ -262,16 +257,21 @@ public class PomodoroTimer {
             pauseButton.setText("Pause");
         }
     }
-    
-    
 
     private void cancelTimer() {
-        stopTimer();
+        if (timer != null) {
+            timer.stop();
+        }
         remainingTime = 0;
         isBreak = false;
+        isRunning = false;
         updateTimerLabel();
         updateWindowTitle();
+        startButton.setEnabled(true); 
+        pauseButton.setEnabled(false);
+        pauseButton.setText("Pause");
     }
+    
 
     private class StartAction implements ActionListener {
         @Override
