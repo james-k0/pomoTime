@@ -18,6 +18,7 @@ public class PomodoroTimer {
     private final File cycleFile = new File("num.txt");
     private boolean isBreak = false;
     private JButton toggleEditableButton;
+    private boolean autoStartNextSessionEnabled = true;
     private final Image icon = new ImageIcon(PomodoroTimer.class.getResource("/dav.png")).getImage();
 
     public PomodoroTimer() {
@@ -84,7 +85,8 @@ public class PomodoroTimer {
         startButton = new JButton("Start");
         pauseButton = new JButton("Pause");
         cancelButton = new JButton("Cancel");
-        pauseButton.setEnabled(false); 
+        pauseButton.setEnabled(false);
+        cancelButton.setEnabled(false);
 
         startButton.addActionListener(new StartAction());
         pauseButton.addActionListener(new PauseAction());
@@ -106,7 +108,7 @@ public class PomodoroTimer {
     private void openSettingsMenu() {
         JFrame settingsFrame = new JFrame("settings menu");
         settingsFrame.setSize(300, 200);
-        settingsFrame.setLayout(new GridLayout(1, 2));
+        settingsFrame.setLayout(new GridLayout(2, 2));
         settingsFrame.setIconImage(icon);
 
         JLabel customBreaksLabel = new JLabel("custom breaks:");
@@ -120,8 +122,21 @@ public class PomodoroTimer {
             }
         });
 
+        JLabel autoStartNextSessionLabel = new JLabel("auto-start next session:");
+        JButton toggleAutoStartNextSessionButton = new JButton(autoStartNextSessionEnabled ? "Yes" : "No");
+        toggleAutoStartNextSessionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                autoStartNextSessionEnabled = !autoStartNextSessionEnabled;
+                toggleAutoStartNextSessionButton.setText(autoStartNextSessionEnabled ? "Yes" : "No");
+            }
+        });
+
         settingsFrame.add(customBreaksLabel);
         settingsFrame.add(toggleEditableButton);
+        settingsFrame.add(autoStartNextSessionLabel);
+        settingsFrame.add(toggleAutoStartNextSessionButton);
+
         settingsFrame.setVisible(true);
     }
 
@@ -185,57 +200,67 @@ public class PomodoroTimer {
     }
 
     private void startTimer() {
-        startButton.setEnabled(false); 
+        startButton.setEnabled(false);
         pauseButton.setEnabled(true);
+        cancelButton.setEnabled(true);
         if (remainingTime <= 0) {
             remainingTime = isBreak
                     ? Integer.parseInt(breakInput.getText()) * 60 * 1000L
                     : Integer.parseInt(minutesInput.getText()) * 60 * 1000L;
         }
-    
+
         long startTime = System.currentTimeMillis();
         long endTime = startTime + remainingTime;
-    
+
         timer = new Timer(50, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 long currentTime = System.currentTimeMillis();
                 remainingTime = endTime - currentTime;
-    
+
                 if (remainingTime <= 0) {
                     timer.stop();
                     isRunning = false;
-    
+
                     if (isBreak) {
                         completedCycles++;
                         saveCompletedCycles();
                         updateCyclesLabel();
+                        isBreak = false;
+                        Toolkit.getDefaultToolkit().beep();
+                        updateWindowTitle();
+                        remainingTime = 0;
+                        if (autoStartNextSessionEnabled) {
+                            startTimer();
+                        } else {
+                            startButton.setEnabled(true);
+                            pauseButton.setEnabled(false);
+                            cancelButton.setEnabled(false);
+                        }
+                    } else {
+                        isBreak = true;
+                        Toolkit.getDefaultToolkit().beep();
+                        updateWindowTitle();
+                        remainingTime = 0;
+                        startTimer();
                     }
-                    Toolkit.getDefaultToolkit().beep();
-    
-                    isBreak = !isBreak;
-                    updateWindowTitle();
-                    remainingTime = 0;
-                    startTimer();
                 } else {
                     updateTimerLabel();
                 }
             }
         });
-    
+
         isRunning = true;
         updateWindowTitle();
         updateTimerLabel();
         timer.start();
-    }   
-    
+    }
 
     private void updateTimerLabel() {
-        int minutes = (int) (remainingTime / 60000); 
+        int minutes = (int) (remainingTime / 60000);
         int seconds = (int) ((remainingTime % 60000) / 1000);
         timerLabel.setText(String.format("%02d:%02d", minutes, seconds));
     }
-    
 
     private void updateWindowTitle() {
         if (isRunning) {
@@ -267,11 +292,11 @@ public class PomodoroTimer {
         isRunning = false;
         updateTimerLabel();
         updateWindowTitle();
-        startButton.setEnabled(true); 
+        startButton.setEnabled(true);
         pauseButton.setEnabled(false);
+        cancelButton.setEnabled(false);
         pauseButton.setText("Pause");
     }
-    
 
     private class StartAction implements ActionListener {
         @Override
