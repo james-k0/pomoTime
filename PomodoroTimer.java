@@ -18,7 +18,8 @@ public class PomodoroTimer {
     private final File cycleFile = new File("num.txt");
     private boolean isBreak = false;
     private JButton toggleEditableButton;
-    private boolean autoStartNextSessionEnabled = true;
+    private boolean autoStartNextSessionEnabled = false;
+    private boolean isBeepEnabled = true;
     private final Image icon = new ImageIcon(PomodoroTimer.class.getResource("/dav.png")).getImage();
 
     public PomodoroTimer() {
@@ -28,8 +29,8 @@ public class PomodoroTimer {
     private void createUI() {
         frame = new JFrame("get workin");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 250);
-        frame.setLayout(new GridLayout(6, 2));
+        frame.setSize(400, 300);
+        frame.setLayout(new GridLayout(7, 2));
         frame.setIconImage(icon);
 
         JMenuBar menuBar = new JMenuBar();
@@ -50,7 +51,7 @@ public class PomodoroTimer {
 
         exitItem.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e){
+            public void actionPerformed(ActionEvent e) {
                 exitApplication();
             }
         });
@@ -60,6 +61,28 @@ public class PomodoroTimer {
 
         cyclesLabel = new JLabel(loadCompletedCycles(), SwingConstants.CENTER);
         cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+
+        JButton incrementButton = new JButton("+");
+        incrementButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                completedCycles++;
+                saveCompletedCycles();
+                updateCyclesLabel();
+            }
+        });
+
+        JButton decrementButton = new JButton("-");
+        decrementButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (completedCycles > 0) {
+                    completedCycles--;
+                    saveCompletedCycles();
+                    updateCyclesLabel();
+                }
+            }
+        });
 
         minutesInput = new JTextField("50");
         breakInput = new JTextField("10");
@@ -101,6 +124,9 @@ public class PomodoroTimer {
         frame.add(pauseButton);
         frame.add(cancelButton);
         frame.add(cyclesLabel);
+        frame.add(new JLabel());
+        frame.add(incrementButton);
+        frame.add(decrementButton);
 
         frame.setVisible(true);
     }
@@ -108,7 +134,7 @@ public class PomodoroTimer {
     private void openSettingsMenu() {
         JFrame settingsFrame = new JFrame("settings menu");
         settingsFrame.setSize(300, 200);
-        settingsFrame.setLayout(new GridLayout(2, 2));
+        settingsFrame.setLayout(new GridLayout(3, 2));
         settingsFrame.setIconImage(icon);
 
         JLabel customBreaksLabel = new JLabel("custom breaks:");
@@ -132,20 +158,32 @@ public class PomodoroTimer {
             }
         });
 
+        JLabel beepLabel = new JLabel("enable beep sound:");
+        JButton toggleBeepButton = new JButton(isBeepEnabled ? "Yes" : "No");
+        toggleBeepButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isBeepEnabled = !isBeepEnabled;
+                toggleBeepButton.setText(isBeepEnabled ? "Yes" : "No");
+            }
+        });
+
         settingsFrame.add(customBreaksLabel);
         settingsFrame.add(toggleEditableButton);
         settingsFrame.add(autoStartNextSessionLabel);
         settingsFrame.add(toggleAutoStartNextSessionButton);
+        settingsFrame.add(beepLabel);
+        settingsFrame.add(toggleBeepButton);
 
         settingsFrame.setVisible(true);
     }
 
     private void exitApplication() {
-        int confirm = JOptionPane.showConfirmDialog(frame, 
-            "do you want to exit", 
-            "exit box", 
-            JOptionPane.YES_NO_OPTION);
-    
+        int confirm = JOptionPane.showConfirmDialog(frame,
+                "do you want to exit",
+                "exit box",
+                JOptionPane.YES_NO_OPTION);
+
         if (confirm == JOptionPane.YES_OPTION) {
             if (timer != null && timer.isRunning()) {
                 timer.stop();
@@ -227,7 +265,7 @@ public class PomodoroTimer {
                         saveCompletedCycles();
                         updateCyclesLabel();
                         isBreak = false;
-                        Toolkit.getDefaultToolkit().beep();
+                        if (isBeepEnabled) Toolkit.getDefaultToolkit().beep();
                         updateWindowTitle();
                         remainingTime = 0;
                         if (autoStartNextSessionEnabled) {
@@ -239,7 +277,7 @@ public class PomodoroTimer {
                         }
                     } else {
                         isBreak = true;
-                        Toolkit.getDefaultToolkit().beep();
+                        if (isBeepEnabled) Toolkit.getDefaultToolkit().beep();
                         updateWindowTitle();
                         remainingTime = 0;
                         startTimer();
