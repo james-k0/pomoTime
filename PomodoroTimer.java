@@ -30,7 +30,7 @@ public class PomodoroTimer {
         frame = new JFrame("get workin");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 300);
-        frame.setLayout(new GridLayout(7, 2));
+        frame.setLayout(new GridLayout(5, 2));
         frame.setIconImage(icon);
 
         JMenuBar menuBar = new JMenuBar();
@@ -61,28 +61,6 @@ public class PomodoroTimer {
 
         cyclesLabel = new JLabel(loadCompletedCycles(), SwingConstants.CENTER);
         cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-
-        JButton incrementButton = new JButton("+");
-        incrementButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                completedCycles++;
-                saveCompletedCycles();
-                updateCyclesLabel();
-            }
-        });
-
-        JButton decrementButton = new JButton("-");
-        decrementButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (completedCycles > 0) {
-                    completedCycles--;
-                    saveCompletedCycles();
-                    updateCyclesLabel();
-                }
-            }
-        });
 
         minutesInput = new JTextField("50");
         breakInput = new JTextField("10");
@@ -124,9 +102,6 @@ public class PomodoroTimer {
         frame.add(pauseButton);
         frame.add(cancelButton);
         frame.add(cyclesLabel);
-        frame.add(new JLabel());
-        frame.add(incrementButton);
-        frame.add(decrementButton);
 
         frame.setVisible(true);
     }
@@ -134,7 +109,7 @@ public class PomodoroTimer {
     private void openSettingsMenu() {
         JFrame settingsFrame = new JFrame("settings menu");
         settingsFrame.setSize(300, 200);
-        settingsFrame.setLayout(new GridLayout(3, 2));
+        settingsFrame.setLayout(new GridLayout(4, 2));
         settingsFrame.setIconImage(icon);
 
         JLabel customBreaksLabel = new JLabel("custom breaks:");
@@ -168,12 +143,36 @@ public class PomodoroTimer {
             }
         });
 
+        JButton incrementSessionButton = new JButton("+1 session");
+        incrementSessionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                completedCycles++;
+                saveCompletedCycles();
+                updateCyclesLabel();
+            }
+        });
+
+        JButton decrementSessionButton = new JButton("-1 session");
+        decrementSessionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (completedCycles > 0) {
+                    completedCycles--;
+                    saveCompletedCycles();
+                    updateCyclesLabel();
+                }
+            }
+        });
+
         settingsFrame.add(customBreaksLabel);
         settingsFrame.add(toggleEditableButton);
         settingsFrame.add(autoStartNextSessionLabel);
         settingsFrame.add(toggleAutoStartNextSessionButton);
         settingsFrame.add(beepLabel);
         settingsFrame.add(toggleBeepButton);
+        settingsFrame.add(decrementSessionButton);
+        settingsFrame.add(incrementSessionButton);
 
         settingsFrame.setVisible(true);
     }
@@ -324,24 +323,25 @@ public class PomodoroTimer {
     private void cancelTimer() {
         if (timer != null) {
             timer.stop();
+            timer = null;
+            isRunning = false;
+            remainingTime = 0;
+            updateWindowTitle();
+            updateTimerLabel();
+            startButton.setEnabled(true);
+            pauseButton.setEnabled(false);
+            cancelButton.setEnabled(false);
         }
-        remainingTime = 0;
-        isBreak = false;
-        isRunning = false;
-        updateTimerLabel();
-        updateWindowTitle();
-        startButton.setEnabled(true);
-        pauseButton.setEnabled(false);
-        cancelButton.setEnabled(false);
-        pauseButton.setText("Pause");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(PomodoroTimer::new);
     }
 
     private class StartAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (!isRunning) {
-                startTimer();
-            }
+            startTimer();
         }
     }
 
@@ -357,9 +357,5 @@ public class PomodoroTimer {
         public void actionPerformed(ActionEvent e) {
             cancelTimer();
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(PomodoroTimer::new);
     }
 }
