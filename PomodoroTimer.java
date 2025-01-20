@@ -1,3 +1,4 @@
+import javax.sound.sampled.*;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -21,6 +22,7 @@ public class PomodoroTimer {
     private boolean autoStartNextSessionEnabled = false;
     private boolean isBeepEnabled = true;
     private final Image icon = new ImageIcon(PomodoroTimer.class.getResource("/dav.png")).getImage();
+    private File customSoundFile;
 
     public PomodoroTimer() {
         createUI();
@@ -109,7 +111,7 @@ public class PomodoroTimer {
     private void openSettingsMenu() {
         JFrame settingsFrame = new JFrame("settings menu");
         settingsFrame.setSize(300, 200);
-        settingsFrame.setLayout(new GridLayout(4, 2));
+        settingsFrame.setLayout(new GridLayout(5, 2));
         settingsFrame.setIconImage(icon);
 
         JLabel customBreaksLabel = new JLabel("custom breaks:");
@@ -165,6 +167,20 @@ public class PomodoroTimer {
             }
         });
 
+        JLabel customSoundLabel = new JLabel("custom beep:");
+        JButton chooseSoundButton = new JButton("Choose .Wav");
+        chooseSoundButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                int returnValue = fileChooser.showOpenDialog(null);
+                if (returnValue == JFileChooser.APPROVE_OPTION) {
+                    customSoundFile = fileChooser.getSelectedFile();
+                    saveCompletedCycles();
+                }
+            }
+        });
+
         settingsFrame.add(customBreaksLabel);
         settingsFrame.add(toggleEditableButton);
         settingsFrame.add(autoStartNextSessionLabel);
@@ -173,6 +189,8 @@ public class PomodoroTimer {
         settingsFrame.add(toggleBeepButton);
         settingsFrame.add(decrementSessionButton);
         settingsFrame.add(incrementSessionButton);
+        settingsFrame.add(customSoundLabel);
+        settingsFrame.add(chooseSoundButton);
 
         settingsFrame.setVisible(true);
     }
@@ -213,6 +231,10 @@ public class PomodoroTimer {
             String line = reader.readLine();
             if (line != null) {
                 completedCycles = Integer.parseInt(line);
+                String soundFilePath = reader.readLine();
+                if (soundFilePath != null && !soundFilePath.isEmpty()) {
+                    customSoundFile = new File(soundFilePath);
+                }
                 return "sessions: " + completedCycles;
             }
         } catch (IOException | NumberFormatException e) {
@@ -225,6 +247,10 @@ public class PomodoroTimer {
     private void saveCompletedCycles() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(cycleFile, false))) {
             writer.write(String.valueOf(completedCycles));
+            writer.newLine();
+            if (customSoundFile != null) {
+                writer.write(customSoundFile.getAbsolutePath());
+            }
         } catch (IOException e) {
             System.err.println("error saving cycles " + e.getMessage());
         }
@@ -264,7 +290,7 @@ public class PomodoroTimer {
                         saveCompletedCycles();
                         updateCyclesLabel();
                         isBreak = false;
-                        if (isBeepEnabled) Toolkit.getDefaultToolkit().beep();
+                        if (isBeepEnabled) playSound();
                         updateWindowTitle();
                         remainingTime = 0;
                         if (autoStartNextSessionEnabled) {
@@ -276,7 +302,7 @@ public class PomodoroTimer {
                         }
                     } else {
                         isBreak = true;
-                        if (isBeepEnabled) Toolkit.getDefaultToolkit().beep();
+                        if (isBeepEnabled) playSound();
                         updateWindowTitle();
                         remainingTime = 0;
                         startTimer();
@@ -331,6 +357,22 @@ public class PomodoroTimer {
             startButton.setEnabled(true);
             pauseButton.setEnabled(false);
             cancelButton.setEnabled(false);
+        }
+    }
+
+    private void playSound() {
+        if (customSoundFile != null && customSoundFile.exists()) {
+            try {
+                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(customSoundFile);
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInputStream);
+                clip.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toolkit.getDefaultToolkit().beep();
+            }
+        } else {
+            Toolkit.getDefaultToolkit().beep();
         }
     }
 
