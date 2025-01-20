@@ -1,6 +1,7 @@
 # pomoTime🍅
  a little pomodoro study timer. press the buttons
 
+#### disclaimer: if you download a .exe release your OS will flag this as unsafe as it will be unsigned
 
 ## roadmap 🚗🗺
 - settings menu 
